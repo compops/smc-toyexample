@@ -3,15 +3,16 @@ smc-toyexample
 
 Sequential Monte Carlo methods (particle filtering/smoothing) for a toy problem of the following form
 
-- x_{t+1} = a x_t + v_t,  v_t \sim N(0,\sigma^2_v),
-- y_t = x_t + e_t,  e_t \sim N(0,\sigma^2_e)
+- x(t+1) = a x(t) + v(t),  v(t) ~ N(0,sigmav^2),
+- y(t)   = c x(t) + e(t),  e(t) ~ N(0,\sigmae^2)
 
-where a denotes the scale parameter and the noise variances are given by \sigma^2_v and \sigma^2_e.
+where a and c denote scale parameters and the noise variances are given by sigmav^2 and sigmae^2.
 
 Files
 -------------
 The following files are included
-- toyproblem_pf: estimate the states given a data realisation and the parameters using a bootstrap particle filter.
-- toyproblem_fl: estimate the states given a data realisation and the parameters using a fixed-lag smoother.
-- toyproblem_ffbsi: estimate the states given a data realisation and the parameters using a forward-filtering backward-simulator.
-- toyproblem_score: estimate the score function given a data realisation using a forward-filtering backward-smoother.
+- toyex_pf: estimate the states given a data realisation and the parameters using a bootstrap particle filter.
+- toyex_bpf: estimate the states given a data realisation and the parameters using a information filter (backward particle filter).
+- toyex_fl: estimate the states given a data realisation and the parameters using a fixed-lag smoother.
+- toyex_ffbsm: estimate the states given a data realisation and the parameters using a forward-filtering backward-smoothing.
+- toyex_tf: estimate the states given a data realisation and the parameters using a two-filter smoother.
