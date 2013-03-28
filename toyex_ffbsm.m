@@ -1,6 +1,10 @@
 %-------------------------------------------------------------------
-% Simple introductionary example to particle filtering
+% Simple introductionary example to particle smoothing
 % in a linear Gaussian state space model
+%
+% Implements the Forward-filtering Backward-Smoother from
+% the paper by Doucet, Godsill, Andrieu (2000) with the title
+% "On sequential Monte Carlo sampling methods for Bayesian filtering"
 %
 % Written by: Johan Dahlin, Linköping University, Sweden
 %             (johan.dahlin (at) isy.liu.se)
@@ -61,8 +65,25 @@ for tt=1:sys.T
 end
 
 %-------------------------------------------------------------------
+% Particle smoother (Forward-filtering Backward-Smoother) (FFBSm)
+%-------------------------------------------------------------------
+Ws(:,sys.T)=W(:,sys.T);
+xhatPS(sys.T)=xhatPF(sys.T);
+
+for tt=sys.T-1:-1:1
+    % Compute the normalisation term
+    for jj=1:par.N; v(jj,tt)=sum(W(:,tt).*normpdf(p(jj,tt+1),sys.a*p(:,tt),sys.sigmav)); end
+    
+    % Compute the smoothing weight
+    for ii=1:par.N; Ws(ii,tt)=W(ii,tt)*sum(Ws(:,tt+1).*normpdf(p(:,tt+1),sys.a*p(ii,tt),sys.sigmav)./v(:,tt)); end
+    
+    % Compute the state estimate
+    xhatPS(tt)=Ws(:,tt)'*p(:,tt);
+end
+
+%-------------------------------------------------------------------
 % Plot the true and estimated states
 %-------------------------------------------------------------------
-plot(1:sys.T,x,'k',1:sys.T,xhatPF,'r');
+plot(1:sys.T,x,'k',1:sys.T,xhatPS,'r');
 xlabel('time'); ylabel('latent state (x)');
 legend('true','PF est.');

@@ -16,7 +16,7 @@ clear all;
 %-------------------------------------------------------------------
 sys.a=1;                % Scale parameter in the process model
 sys.c=1;                % Scale parameter in the observation model
-sys.sigmav=0.1;         % Standard deviation of the process noise
+sys.sigmav=1.0;         % Standard deviation of the process noise
 sys.sigmae=0.1;         % Standard deviation of the measurement noise
 sys.T=100;              % Number of time steps
 par.N=1000;             % Number of particles

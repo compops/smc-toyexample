@@ -18,9 +18,13 @@ clear all;
 %-------------------------------------------------------------------
 % Parameters
 %-------------------------------------------------------------------
-sys.a=1;                % Scale parameter in the process model
+sys.a=0.99;             % Scale parameter in the process model
+                        % This is needed for the process model to be
+                        % reverseble (note that sys.a=1 leads to an
+                        % unstable system, så 0.99 is a compromise.
+                        
 sys.c=1;                % Scale parameter in the observation model
-sys.sigmav=0.1;         % Standard deviation of the process noise
+sys.sigmav=1.0;         % Standard deviation of the process noise
 sys.sigmae=0.1;         % Standard deviation of the measurement noise
 sys.T=100;              % Number of time steps
 par.N=1000;             % Number of particles
