@@ -15,4 +15,3 @@ The following files are included
 - toyex_bpf: estimates the states given a data realisation and the parameters using a information filter (backward particle filter).
 - toyex_fl: estimates the states given a data realisation and the parameters using a fixed-lag smoother.
 - toyex_ffbsm: estimates the states given a data realisation and the parameters using a forward-filtering backward-smoothing.
-- toyex_tf: estimates the states given a data realisation and the parameters using a two-filter smoother.

@@ -4,6 +4,8 @@
 %
 % Written by: Johan Dahlin, Linköping University, Sweden
 %             (johan.dahlin (at) isy.liu.se)
+%
+% Copyright (c) 2013 Johan Dahlin [ johan.dahlin (at) liu.se ]
 %               
 % Date:       2013-03-20
 %
@@ -55,10 +57,16 @@ for tt=sys.T:-1:1
    
    % Calculate weights
    if ~(tt==sys.T)
-     w(:,tt)=normpdf(y(tt),sys.c*p(:,tt),sys.sigmae)*g(:,tt)/g(:,tt+1);
+       tmp = -0.5 * log( 2 * pi * sys.sigmae^2) - 0.5/sys.sigmae^2.*( y(tt) - sys.c*p(:,tt) ).^2;
+       w(:,tt) = tmp + log(g(:,tt)) - log(g(:,tt+1));
    else
-     w(:,tt)=normpdf(y(tt),sys.c*p(:,tt),sys.sigmae)*g(:,tt);
+       tmp = -0.5 * log( 2 * pi * sys.sigmae^2) - 0.5/sys.sigmae^2.*( y(tt) - sys.c*p(:,tt) ).^2;
+       w(:,tt)= tmp + log(g(:,tt));
    end
+   
+   % Transform from log-weights
+   wmax    = max( w(:,tt) );
+   w(:,tt) = exp( w(:,tt) - wmax );
    
    % Normalise of weights
    W(:,tt)=w(:,tt)/sum(w(:,tt));
