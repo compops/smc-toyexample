@@ -1,10 +1,6 @@
 %-------------------------------------------------------------------
-% Simple introductionary example to particle smoothing
+% Simple introductionary example to particle filtering
 % in a linear Gaussian state space model
-%
-% Implements the Forward-filtering Backward-Smoother from
-% the paper by Doucet, Godsill, Andrieu (2000) with the title
-% "On sequential Monte Carlo sampling methods for Bayesian filtering"
 %
 % Written by: Johan Dahlin, Linköping University, Sweden
 %             (johan.dahlin (at) isy.liu.se)
@@ -22,10 +18,12 @@ clear all;
 %-------------------------------------------------------------------
 sys.a=0.5;              % Scale parameter in the process model
 sys.c=1;                % Scale parameter in the observation model
-sys.sigmav=1.0;         % Standard deviation of the process noise
+sys.sigmav=0.1;         % Standard deviation of the process noise
 sys.sigmae=0.1;         % Standard deviation of the measurement noise
 sys.T=100;              % Number of time steps
 par.N=1000;             % Number of particles
+par.Ns=100;
+par.M=20;
 
 %-------------------------------------------------------------------
 % Generate data
@@ -52,8 +50,8 @@ p(:,1)=zeros(par.N,1);  % Set initial particle states
 for tt=1:sys.T
    % Selection (resampling) and mutation (propagation)
    if ~(tt==1)
-      nIdx=randsample(par.N,par.N,'true',W(:,tt-1));
-      p(:,tt)=sys.a*p(nIdx,tt-1)+sys.sigmav*randn(par.N,1);
+      a(:,tt)=randsample(par.N,par.N,'true',W(:,tt-1));
+      p(:,tt)=sys.a*p(a(:,tt),tt-1)+sys.sigmav*randn(par.N,1);
    end
    
    % Calculate log-weights (for increased accuracy)
@@ -72,25 +70,49 @@ for tt=1:sys.T
 end
 
 %-------------------------------------------------------------------
-% Particle smoother (Forward-filtering Backward-Smoother) (FFBSm)
+% Metropolis-Hastings Forward-Filtering Backward-Sampling
 %-------------------------------------------------------------------
-Ws(:,sys.T)=W(:,sys.T);
-xhatPS(sys.T)=xhatPF(sys.T);
 
-for tt=sys.T-1:-1:1
-    % Compute the normalisation term
-    for jj=1:par.N; v(jj,tt)=sum(W(:,tt).*normpdf(p(jj,tt+1),sys.a*p(:,tt),sys.sigmav)); end
+for ii=1:par.Ns
+    % Sample a single particle at t=T
+    pIdx=randsample(par.N,1,'true',W(:,sys.T));
+    ps(ii,sys.T)=p(pIdx,sys.T);
+    as(ii,sys.T)=a(pIdx,sys.T);
     
-    % Compute the smoothing weight
-    for ii=1:par.N; Ws(ii,tt)=W(ii,tt)*sum(Ws(:,tt+1).*normpdf(p(:,tt+1),sys.a*p(ii,tt),sys.sigmav)./v(:,tt)); end
-    
-    % Compute the state estimate
-    xhatPS(tt)=Ws(:,tt)'*p(:,tt);
+    for tt=sys.T-1:-1:2
+        % Sample the ancestor of the particle in the future time step
+        ps(ii,tt)=p(as(ii,tt+1),tt);
+        as(ii,tt)=a(as(ii,tt+1),tt);
+        
+        % MH-sampler
+        for mm=1:par.M
+            % Propose a new state
+            pIdx=randsample(par.N,1,'true',W(:,tt));
+            pstar=p(pIdx,tt);
+            
+            % Calculate acceptance probability
+            aprob=normpdf(ps(ii,tt+1),sys.a*pstar,sys.sigmav)...
+                 /normpdf(ps(ii,tt+1),sys.a*ps(ii,tt),sys.sigmav);
+            
+            % Accept/reject step
+            if rand < aprob
+                % accept
+                ps(ii,tt)=pstar;
+                as(ii,tt)=a(pIdx,tt);
+            end                    
+        end
+    end
 end
+
+xhatPS=mean(ps,1);
 
 %-------------------------------------------------------------------
 % Plot the true and estimated states
 %-------------------------------------------------------------------
-plot(1:sys.T,x,'k',1:sys.T,xhatPS,'r');
+plot(1:sys.T,x,'k',1:sys.T,xhatPF,'b',1:sys.T,xhatPS,'r');
 xlabel('time'); ylabel('latent state (x)');
-legend('true','PF est.');
+legend('true','PF est.','PS est.');
+
+
+mean((x-xhatPF).^2)
+mean((x-xhatPS).^2)
